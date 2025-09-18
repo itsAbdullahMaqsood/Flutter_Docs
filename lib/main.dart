@@ -20,7 +20,7 @@ void main() async {
   runApp(ProviderScope(child: const MyApp()));
 }
 
-class MyApp extends ConsumerStatefulWidget {
+class MyApp extends ConsumerStatefulWidget { 
   const MyApp({super.key});
 
   @override

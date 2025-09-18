@@ -12,7 +12,12 @@ const PORT = process.env.PORT || 3001;
 
 const app = express();
 var server = http.createServer(app);
-var io = socket(server);
+const io = socket(3002, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors());
 app.use(express.json());
@@ -37,6 +42,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("typing", (data) => {
+  console.log("Typing delta from", socket.id, ":", data);
     socket.broadcast.to(data.room).emit("changes", data);
   });
 });
