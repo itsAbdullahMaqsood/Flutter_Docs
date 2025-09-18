@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_docs/models/user_model.dart';
 import 'package:google_docs/providers/auth_provider.dart';
 import 'package:google_docs/repository/local_storage_repository.dart';
-import 'package:google_docs/screens/home_screen.dart';
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,22 +95,21 @@ class _AndroidButtonGoogleSignInState
   // }
 
   Future<void> _init() async {
-    final signIn = ref.read(googleSignInProvider);
+    final signInService = ref.read(googleSignInProvider);
+    final router = GoRouter.of(context);
     final sMessenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
     final localStorageRepo = LocalStorageRepository();
-
     try {
-      await signIn.initialize(
+      await signInService.initialize(
         clientId: dotenv.env['CLIENT_ID'],
         serverClientId: dotenv.env['SERVER_CLIENT_ID'],
       );
 
-      _sub = signIn.authenticationEvents.listen(
+      _sub = signInService.authenticationEvents.listen(
         (event) async {
           if (event is GoogleSignInAuthenticationEventSignIn) {
             final user = event.user;
-            final auth = await user.authentication; // idToken & accessToken
+            // final auth = await user.authentication; // idToken & accessToken
             ref.read(googleAuthProvider.notifier).state = user;
             await fetchAndSetUserData(ref);
             final userAcc = UserModel(
@@ -134,7 +133,7 @@ class _AndroidButtonGoogleSignInState
                 localStorageRepo.setToken(newUser.token!);
                 ref.read(userProvider.notifier).update((state) => newUser);
             }
-            navigator.push(MaterialPageRoute(builder: (_) => HomeScreen()));
+            router.push("/home");
           } else if (event is GoogleSignInAuthenticationEventSignOut) {
             ref.read(googleAuthProvider.notifier).state = null;
           }
@@ -144,7 +143,7 @@ class _AndroidButtonGoogleSignInState
         },
       );
 
-      await signIn.attemptLightweightAuthentication();
+      // await signInService.attemptLightweightAuthentication();
     } catch (e) {
       ref.read(googleErrorProvider.notifier).state = '$e';
       sMessenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -154,9 +153,9 @@ class _AndroidButtonGoogleSignInState
   @override
   Widget build(BuildContext context) {
     final signIn = ref.read(googleSignInProvider);
-    final _lastError = ref.watch(googleErrorProvider);
+    final lastError = ref.watch(googleErrorProvider);
 
-    final _user = ref.watch(googleAuthProvider);
+    // final _user = ref.watch(googleAuthProvider);
 
     //to show user info when logged in
     // if (_user != null) {
@@ -181,8 +180,8 @@ class _AndroidButtonGoogleSignInState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (_lastError != null)
-              Text(_lastError!, style: const TextStyle(color: Colors.red)),
+            if (lastError != null)
+              Text(lastError, style: const TextStyle(color: Colors.red)),
             ElevatedButton(
               onPressed: signIn.supportsAuthenticate()
                   ? () => signIn.authenticate()

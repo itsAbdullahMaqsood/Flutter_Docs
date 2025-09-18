@@ -40,4 +40,8 @@ class UserService {
       rethrow; // <-- don’t swallow silently
     }
   }
+
+  signOutUser() {
+    localStorageRepo.clearToken();
+  }
 }

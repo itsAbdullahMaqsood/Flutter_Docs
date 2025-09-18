@@ -7,7 +7,6 @@ export const auth = async (req, res, next) => {
     const token = req.header("x-auth-token");
 
     if (!token) return res.status(401).json({ msg: "No auth token" });
-    console.log("JWT_SECRET:", process.env.JWT_SECRET);
     const verified = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!verified)

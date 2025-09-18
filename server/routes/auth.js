@@ -20,7 +20,6 @@ authRouter.post("/api/signup", async (req, res) => {
       });
       user = await user.save();
     }
-    console.log("JWT_SECRET:", process.env.JWT_SECRET);
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
     res.status(200).json({ user, token });
